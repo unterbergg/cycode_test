@@ -1,0 +1,28 @@
+.solberg_taxonomy-img div.img-wrap {
+    background: #ccc;
+    background-size:contain;
+    max-width: 200px;
+    max-height: 200px;
+    width: 100%;
+    height: 100%;
+    overflow:hidden;
+    position:relative;
+    margin-top:20px;
+}
+.solberg_taxonomy-img div.img-wrap img {
+    display:none;
+    width: 200px;
+    object-fit: cover;
+    height: 200px;
+}
+.solberg_taxonomy-img div.img-wrap .remove-img{
+    display:none;
+    width:20px;
+    height:20px;
+    position:absolute;
+    top:5px;
+    right:5px;
+    background: url('../../assets/img/remove.png') no-repeat center center;
+    background-size:100% 100%;
+    cursor:pointer;
+}

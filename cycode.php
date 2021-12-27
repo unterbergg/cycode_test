@@ -27,6 +27,119 @@ class Cycode_Plugin {
                 '',
                 4);
         } );
+
+        add_action( 'wp_ajax_get_repos', [$this, 'get_repos'], 99 );
+    }
+
+    public function get_repos() {
+
+        $org = $_POST['org'];
+        $per_page = $_POST['per_page'];
+        $page = $_POST['page'];
+
+
+        $ch = curl_init();
+
+        $header = array();
+        $header[] = 'Content-length: 0';
+        $header[] = 'Content-type: application/json';
+        $header[] = 'Authorization: token '. "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";
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+
+        curl_setopt($ch, CURLOPT_URL, "https://api.github.com/orgs/{$org}");
+        $all = curl_exec($ch);
+        $all = json_decode($all, true);
+
+        curl_setopt($ch, CURLOPT_URL, "https://api.github.com/orgs/{$org}/repos?per_page={$per_page}");
+        $json = curl_exec($ch);
+
+        echo "<section>";
+        ?>
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Profile page</th>
+                <th>Description</th>
+                <th>Size</th>
+                <th>Language</th>
+                <th>Contributors</th>
+            </tr>
+            <?php
+            foreach (json_decode($json, true) as $key => $item) {
+                echo "<tr>";
+                echo "<td>";
+                echo $item['name'];
+                echo "</td>";
+                echo "<td>";
+                echo $item['owner']['html_url'];
+                echo "</td>";
+                echo "<td>";
+                echo $item['description'];
+                echo "</td>";
+                echo "<td>";
+                echo $item['size'];
+                echo "</td>";
+                echo "<td>";
+                echo $item['language'];
+                echo "</td>";
+
+                curl_setopt($ch, CURLOPT_URL, $item['contributors_url']);
+                $contributors = curl_exec($ch);
+                $contributors = json_decode($contributors, true);
+                echo "<td>";
+                foreach ($contributors as $contributor) {
+                    echo "<a href='#'>";
+                    echo $contributor['login'];
+                    echo "</a>";
+                    echo PHP_EOL;
+                }
+                echo "</td>";
+                echo "</tr>";
+            }
+            ?>
+        </table>
+        <?php
+        echo "</section>";
+
+        $this->render_pagination($all['public_repos'], $per_page, $page);
+
+        curl_close($ch);
+        die();
+    }
+
+    public function render_pagination($repos, $per_page, $page) {
+
+        $radius = 5;
+
+        $pages = ceil($repos / $per_page);
+
+        $html = "<div class='pagination'>";
+
+        if (($page - $radius) > 0) {
+            $html .= "<span class='empty-space'> ... </span>";
+        }
+
+        $start = max($page - $radius, 1);
+        $end = min($page + $radius, $pages);
+
+        for ($i = $start; $i < $end; $i++) {
+            $html .= "<span><button class='button' data-page='{$i}'>{$i}</button></span>";
+        }
+
+        if (($page + $radius) < $pages) {
+            $html .= "<span class='empty-space'> ... </span>";
+        }
+
+        $html .= "</div>";
+
+        if ($pages > 1) {
+            echo $html;
+        }
     }
 
     public function create_admin_page_handler() {
@@ -50,6 +163,11 @@ class Cycode_Plugin {
     {
         wp_enqueue_style('cycode-front-styles', plugin_dir_url( __FILE__ ) . '/assets/css/main.css', [], '1.0');
         wp_enqueue_script('cycode-admin-script', plugin_dir_url( __FILE__ ) . '/assets/js/admin.js', ['jquery'], '1.0', true);
+        wp_localize_script( 'cycode-admin-script', 'globalVars', array(
+            'page' => 1,
+            'all_pages' => 0,
+            'url' => admin_url('admin-ajax.php')
+        ) );
     }
 
     public function activation(){}

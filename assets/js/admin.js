@@ -2,10 +2,10 @@
     $('#rep_info').on('submit', function(e) {
         e.preventDefault();
         $.ajax({
-            url: globalVars.url,
+            url: globalVars.url/*"https://api.github.com/orgs/apache"*/,
             type: "POST",
             data: {
-                'org' : 'apache',
+                'org' : $('#org').val(),
                 'action' : 'get_repos',
                 'page' : 1,
                 'per_page' : 20
@@ -16,7 +16,8 @@
             }
         });
     })
-    $('.pagination').on('click', 'button', function(e) {
+
+    $(document).on('click', '.pagination .button', function(e) {
         e.preventDefault();
         console.log($(e.target).attr('data-page'));
         $.ajax({

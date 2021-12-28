@@ -10,6 +10,7 @@ defined( 'ABSPATH' ) || exit;
 define('CYCODE_PLUGIN_DIR', __DIR__);
 
 class Cycode_Plugin {
+
     public function __construct()
     {
         register_activation_hook(__FILE__, [$this, 'activation']);
@@ -37,13 +38,12 @@ class Cycode_Plugin {
         $per_page = $_POST['per_page'];
         $page = $_POST['page'];
 
-
         $ch = curl_init();
 
         $header = array();
         $header[] = 'Content-length: 0';
         $header[] = 'Content-type: application/json';
-        $header[] = 'Authorization: token '. "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";
+        $header[] = 'Authorization: token '. "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";
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
@@ -55,84 +55,104 @@ class Cycode_Plugin {
         $all = curl_exec($ch);
         $all = json_decode($all, true);
 
-        curl_setopt($ch, CURLOPT_URL, "https://api.github.com/orgs/{$org}/repos?per_page={$per_page}");
-        $json = curl_exec($ch);
+        if($all['message']) {
+            echo $all['message'];
+        } else {
 
-        echo "<section>";
-        ?>
-        <table>
-            <tr>
-                <th>Name</th>
-                <th>Profile page</th>
-                <th>Description</th>
-                <th>Size</th>
-                <th>Language</th>
-                <th>Contributors</th>
-            </tr>
-            <?php
-            foreach (json_decode($json, true) as $key => $item) {
-                echo "<tr>";
-                echo "<td>";
-                echo $item['name'];
-                echo "</td>";
-                echo "<td>";
-                echo $item['owner']['html_url'];
-                echo "</td>";
-                echo "<td>";
-                echo $item['description'];
-                echo "</td>";
-                echo "<td>";
-                echo $item['size'];
-                echo "</td>";
-                echo "<td>";
-                echo $item['language'];
-                echo "</td>";
+            curl_setopt($ch, CURLOPT_URL, "https://api.github.com/orgs/{$org}/repos?per_page={$per_page}&page={$page}");
+            $json = curl_exec($ch);
 
-                curl_setopt($ch, CURLOPT_URL, $item['contributors_url']);
-                $contributors = curl_exec($ch);
-                $contributors = json_decode($contributors, true);
-                echo "<td>";
-                foreach ($contributors as $contributor) {
-                    echo "<a href='#'>";
-                    echo $contributor['login'];
-                    echo "</a>";
-                    echo PHP_EOL;
-                }
-                echo "</td>";
-                echo "</tr>";
-            }
+
+            echo "<section class='response-wrap'>";
             ?>
-        </table>
-        <?php
-        echo "</section>";
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Profile page</th>
+                    <th>Description</th>
+                    <th>Size</th>
+                    <th>Language</th>
+                    <th>Contributors</th>
+                </tr>
+                <?php
+                foreach (json_decode($json, true) as $key => $item) {
+                    echo "<tr>";
+                    echo "<td>";
+                    echo $item['name'];
+                    echo "</td>";
+                    echo "<td>";
+                    echo $item['owner']['html_url'];
+                    echo "</td>";
+                    echo "<td>";
+                    echo $item['description'];
+                    echo "</td>";
+                    echo "<td>";
+                    echo $item['size'];
+                    echo "</td>";
+                    echo "<td>";
+                    echo $item['language'];
+                    echo "</td>";
 
-        $this->render_pagination($all['public_repos'], $per_page, $page);
+                    curl_setopt($ch, CURLOPT_URL, $item['contributors_url']);
+                    $contributors = curl_exec($ch);
+                    $contributors = json_decode($contributors, true);
+                    echo "<td>";
+                    foreach ($contributors as $contributor) {
+                        echo "<a href='#'>";
+                        echo $contributor['login'];
+                        echo "</a>";
+                        echo PHP_EOL;
+                    }
+                    echo "</td>";
+                    echo "</tr>";
+                }
+                ?>
+            </table>
+            <?php
+            echo "</section>";
 
+            $this->render_pagination($all['public_repos'], $per_page, $page);
+        }
         curl_close($ch);
+
         die();
     }
 
     public function render_pagination($repos, $per_page, $page) {
 
-        $radius = 5;
-
         $pages = ceil($repos / $per_page);
+        $radius = 2;
 
         $html = "<div class='pagination'>";
+        
+        if($pages > 5) {
+            $start = $page - 2;
+            if ($start <= 0) {
+                $start = 1;
+                $end = 5;
+            } else {
+                $end = $page + 2;
+                if ($end > $pages) {
+                    $end = $pages;
+                    $start = $page - 5;
+                }
+            }
+        
+            if ($start != 1) {
+                $html .= '<span class="empty-space"> ... </span>';
+            }
 
-        if (($page - $radius) > 0) {
-            $html .= "<span class='empty-space'> ... </span>";
-        }
+            for ($i = $start; $i <= $end; $i++) {
+                $html .= "<span><button class='button' data-page='{$i}'>{$i}</button></span>";
+            }
 
-        $start = max($page - $radius, 1);
-        $end = min($page + $radius, $pages);
-
-        for ($i = $start; $i < $end; $i++) {
-            $html .= "<span><button class='button' data-page='{$i}'>{$i}</button></span>";
-        }
-
-        if (($page + $radius) < $pages) {
-            $html .= "<span class='empty-space'> ... </span>";
+            if ($end != $pages) {
+                $html .= '<span class="empty-space"> ... </span>';
+            }
+        } else {
+            for ($i = 1; $i <= $pages; $i++) {
+                $html .= "<span><button class='button' data-page='{$i}'>{$i}</button></span>";
+            }
         }
 
         $html .= "</div>";
@@ -148,7 +168,7 @@ class Cycode_Plugin {
             <h2><?php echo get_admin_page_title() ?></h2>
 
             <form id="rep_info" method="GET">
-                <input type="text" placeholder="test">
+                <input type="text" id="org" placeholder="Organization">
                 <input type="submit">
             </form>
 

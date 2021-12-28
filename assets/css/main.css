@@ -1,0 +1,13 @@
+#response {
+    margin-top: 20px;
+}
+.response-wrap table, .response-wrap th, .response-wrap td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+.response-wrap th, .response-wrap td {
+    padding: 5px;
+}
+.pagination {
+    margin-top: 20px;
+}

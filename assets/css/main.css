@@ -11,3 +11,34 @@
 .pagination {
     margin-top: 20px;
 }
+
+a.tooltip {
+    position: relative;
+}
+a.tooltip .github-avatar {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+}
+
+a.tooltip span {
+    position: absolute;
+    top: 10px;
+    left: -120px;
+    width: 100px;
+    border: #000 1px solid;
+    background: #F8F8F8;
+    padding: 10px;
+    z-index: 1000000;
+    display: inline;
+    opacity: 0;
+    transition: 750ms all;
+}
+a.tooltip:hover span {
+    outline: none;
+    text-decoration: none;
+    font-size: 70%;
+    color: #000;
+
+    opacity: 1;
+}

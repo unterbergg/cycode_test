@@ -40,10 +40,12 @@ class Cycode_Plugin {
 
         $ch = curl_init();
 
+        curl_setopt($ch, CURLOPT_URL, "https://api.github.com/orgs/{$org}");
+
         $header = array();
         $header[] = 'Content-length: 0';
         $header[] = 'Content-type: application/json';
-        $header[] = 'Authorization: token '. "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";
+        $header[] = 'Authorization: token '. "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";
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
@@ -98,10 +100,11 @@ class Cycode_Plugin {
                     $contributors = json_decode($contributors, true);
                     echo "<td>";
                     foreach ($contributors as $contributor) {
-                        echo "<a href='#'>";
+                        echo "<a href='{$contributor['html_url']}' class='tooltip'>";
                         echo $contributor['login'];
+                        echo $this->get_contributor_info($contributor);
                         echo "</a>";
-                        echo PHP_EOL;
+                        echo "<br>";
                     }
                     echo "</td>";
                     echo "</tr>";
@@ -116,6 +119,21 @@ class Cycode_Plugin {
         curl_close($ch);
 
         die();
+    }
+
+    public function get_contributor_info($contributor) {
+        $html = "";
+
+        $html .= "<span class='contributors-info' data-url='{$contributor['events_url']}'>";
+
+        $html .= $contributor['login'];
+        $html .= "<br>";
+        $html .= "<img class='github-avatar' src='{$contributor['avatar_url']}'>";
+        $html .= "<br>";
+
+        $html .= "</span>";
+
+        return $html;
     }
 
     public function render_pagination($repos, $per_page, $page) {

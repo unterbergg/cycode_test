@@ -2,7 +2,7 @@
     $('#rep_info').on('submit', function(e) {
         e.preventDefault();
         $.ajax({
-            url: globalVars.url/*"https://api.github.com/orgs/apache"*/,
+            url: globalVars.url,
             type: "POST",
             data: {
                 'org' : $('#org').val(),

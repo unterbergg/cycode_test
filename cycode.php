@@ -45,7 +45,7 @@ class Cycode_Plugin {
         $header = array();
         $header[] = 'Content-length: 0';
         $header[] = 'Content-type: application/json';
-        $header[] = 'Authorization: token '. "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";
+        $header[] = 'Authorization: token '. "{{token}}";
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
